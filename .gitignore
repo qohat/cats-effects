@@ -22,3 +22,5 @@ TAGS
 tests.iml
 .DS_Store
 config/
+.bsp
+.idea
