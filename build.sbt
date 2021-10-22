@@ -1,19 +1,14 @@
-name := "cats-effect"
+val scala3Version = "3.0.0"
 
-version := "0.1"
+lazy val root = project
+  .in(file("."))
+  .settings(
+    name := "cats-effect",
+    version := "0.1.0",
 
-scalaVersion := "2.13.3"
+    scalaVersion := scala3Version,
 
-libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % Test
-libraryDependencies += "org.typelevel" %% "cats-core" % "2.0.0"
-libraryDependencies += "org.typelevel" %% "cats-effect" % "2.0.0"
-
-scalacOptions ++= Seq(
-  "-feature",
-  "-deprecation",
-  "-unchecked",
-  "-language:postfixOps",
-  "-language:higherKinds", // or import scala.language.higherKinds
-  "-Ymacro-annotations", // for newtype and simulacrum
-)
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats-effect" % "3.2.0",
+    )
+  )
