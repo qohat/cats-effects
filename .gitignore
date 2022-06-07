@@ -24,3 +24,7 @@ tests.iml
 config/
 .bsp
 .idea
+/.idea/
+target
+/target/
+project/target

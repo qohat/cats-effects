@@ -124,5 +124,11 @@ object MainFuture:
 
     f1.onComplete(println) // Success((-1155484576,-1155484576))
     f2.onComplete(println) // Success((-1155484576,-723955400))
+
+    fut1.onComplete(println)
   }
+
+  val fut = Future("Hello").andThen { case Success(v) => println(v) }
+
+  val fut1 = Future("Hello").andThen { println(_) }
 
