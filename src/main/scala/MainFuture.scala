@@ -1,9 +1,12 @@
 import MainFuture.DefaulUserRepo.{User, users}
+import cats.data.{EitherT, OptionT}
+import cats.implicits.*
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.*
 import scala.concurrent.{Await, Future}
-import scala.util.{Failure, Random, Success}
+import scala.util.control.NoStackTrace
+import scala.util.{Failure, Random, Success, Try}
 /**
  * Just for testing Future behavior
  * Is Future really functional???
@@ -119,16 +122,71 @@ object MainFuture:
     } yield (a, b)
   }
 
+  sealed trait MyException extends NoStackTrace
+  case object MyError extends MyException
+  case object My1Error extends MyException
+
   def main(args: Array[String]): Unit = {
-    Await.result(monadValidation, 1.second)
 
-    f1.onComplete(println) // Success((-1155484576,-1155484576))
-    f2.onComplete(println) // Success((-1155484576,-723955400))
+    println(Await.result(futForFailed, 1.second))
+    //Await.result(monadValidation, 1.second)
 
-    fut1.onComplete(println)
+    //f1.onComplete(println) // Success((-1155484576,-1155484576))
+    //f2.onComplete(println) // Success((-1155484576,-723955400))
+
+    //fut1.onComplete(println)
   }
 
-  val fut = Future("Hello").andThen { case Success(v) => println(v) }
+  //val fut = Future("Hello").andThen { case Success(v) => println(v) }
 
-  val fut1 = Future("Hello").andThen { println(_) }
+  //val fut1 = Future("Hello").andThen { println(_) }
+
+  val futAuth: Future[String] = Future.successful("Auth")
+  def futRet(s: String): Future[Option[(String, Int)]] = Future.successful(None)
+  def result(values: (String, Int)): Future[String] = Future.successful(values.toString())
+
+  val f3 = for {
+    auth <- futAuth
+    ret <- futRet(auth).flatMap {
+      case Some(s, i) => Future.successful(s, i)
+      case None => Future.failed(MyError)
+    }
+    result <- result(ret)
+    _ = println(result)
+  } yield result
+
+  val fsuc: Future[String] = Future.successful("Hi")
+  val fNone = Future.successful(None)
+
+  val f4 = Future.failed(My1Error)
+    .andThen {
+        case Failure(_) => Future.failed(new RuntimeException)
+    }.attemptT
+    .leftSemiflatTap(e => Future(println(s"Failed credentials provider authentication $e")))
+    .leftMap(_ => MyError)
+    .value
+    .flatMap {
+      case Left(t)       => Future.failed(t)
+      case Right(result) => Future.successful(result)
+    }
+    .recover(handleError)
+
+  val opT = OptionT.none
+    .orElse(OptionT(Future.successful(None)))
+    .getOrElse(throw new RuntimeException("Test Test") with NoStackTrace)
+
+  val futForFailed = for {
+    a <- Future.successful("Hi")
+    b <- Future.failed(My1Error)
+  } yield ()
+
+  val futTry: Future[Try[Long]] = Future(Failure(MyError))
+
+  def handleError: PartialFunction[Throwable, String] =
+    {
+      case e: MyException => s"Este es un error $e"
+      case t: Throwable => s"Error no controlado $t"
+    }
+
+
 
