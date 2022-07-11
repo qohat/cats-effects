@@ -7,7 +7,7 @@
 .idea
 out/
 target
-target
+target/
 ### Java ###
 
 *.class
@@ -74,3 +74,4 @@ tags
 # Direnv
 
 .direnv
+/target/
